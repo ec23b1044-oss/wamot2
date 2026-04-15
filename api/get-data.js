@@ -1,6 +1,12 @@
 export default async function handler(req, res) {
   try {
+const { device_id, password } = req.body;
 
+// 🔐 VERIFY FIRST
+const device = await axios.get(...);
+
+if (!device.data.length || device.data[0].device_password !== password)
+  return res.status(401).send("Unauthorized");
     // ✅ SAFE BODY HANDLING
     let body = {};
 
