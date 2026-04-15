@@ -4,7 +4,7 @@ export default async function handler(req, res) {
   if (req.method !== "POST")
     return res.status(405).send("Method not allowed");
 
-  const { device_id, device_secret } = req.body;
+  const { device_id, password } = req.body;
 
   const SUPABASE_URL = process.env.SUPABASE_URL;
   const SERVICE_KEY = process.env.SERVICE_KEY;
@@ -23,7 +23,7 @@ export default async function handler(req, res) {
     if (!device.data.length)
       return res.status(401).send("Invalid");
 
-    if (device.data[0].device_password !== device_secret)
+    if (device.data[0].device_password !== password)
       return res.status(403).send("Unauthorized");
 
     res.json({ relay: device.data[0].relay_state });
