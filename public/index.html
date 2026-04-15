@@ -12,7 +12,6 @@
       color: white;
     }
 
-    /* LOGIN */
     .login-container {
       height: 100vh;
       display: flex;
@@ -51,7 +50,6 @@
       font-weight: bold;
     }
 
-    /* DASHBOARD */
     .dashboard { display: none; padding: 20px; }
 
     .layout {
@@ -80,7 +78,6 @@
 
     h2 { color: #38bdf8; }
 
-    /* SWITCH */
     .switch-container {
       display: flex;
       flex-direction: column;
@@ -141,7 +138,6 @@
       background: #1e293b;
     }
 
-    /* STATUS BADGE */
     .status {
       margin-top: 10px;
       padding: 8px 12px;
@@ -168,7 +164,6 @@
 
 <body>
 
-<!-- LOGIN -->
 <div class="login-container" id="loginScreen">
   <div class="login-card">
     <h2>💧 WAMOT</h2>
@@ -178,12 +173,9 @@
   </div>
 </div>
 
-<!-- DASHBOARD -->
 <div class="dashboard" id="dashboard">
-
   <div class="layout">
 
-    <!-- LEFT -->
     <div class="left">
 
       <div class="card">
@@ -217,20 +209,19 @@
 
     </div>
 
-    <!-- RIGHT -->
     <div class="right">
       <h2>📊 Water Level History</h2>
       <canvas id="chart"></canvas>
     </div>
 
   </div>
-
 </div>
 
 <script>
 let device_id = "";
 let password = "";
 let chart;
+let manualOverride = false;
 
 // LOGIN
 async function login() {
@@ -270,7 +261,7 @@ async function getData() {
   updateWaterStatus(data.tds);
 }
 
-// WATER QUALITY STATUS
+// WATER QUALITY
 function updateWaterStatus(tds) {
   const status = document.getElementById("waterStatus");
 
@@ -286,8 +277,11 @@ function updateWaterStatus(tds) {
   }
 }
 
-// RELAY STATE
+// RELAY
 async function getRelayState() {
+
+  if (manualOverride) return;
+
   const res = await fetch("/api/get-relay", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
@@ -295,10 +289,9 @@ async function getRelayState() {
   });
 
   const data = await res.json();
-  updateRelayUI(data.state);
+  updateRelayUI(data.relay || data.state);
 }
 
-// UPDATE RELAY UI
 function updateRelayUI(state) {
   const box = document.getElementById("switchContainer");
   const sw = document.getElementById("relaySwitch");
@@ -318,14 +311,19 @@ function updateRelayUI(state) {
   }
 }
 
-// TOGGLE
+// USER CONTROL FIX
 function toggleRelay() {
+  manualOverride = true;
+
   const state = document.getElementById("relaySwitch").checked ? "ON" : "OFF";
   setRelay(state);
+
+  setTimeout(() => manualOverride = false, 3000);
 }
 
-// MODE
 function setMode(mode) {
+  manualOverride = true;
+
   if (mode === "AUTO") {
     document.getElementById("switchContainer").classList.add("disabled");
     document.getElementById("switchLabel").innerText = "AUTO";
@@ -333,9 +331,10 @@ function setMode(mode) {
   } else {
     document.getElementById("switchContainer").classList.remove("disabled");
   }
+
+  setTimeout(() => manualOverride = false, 3000);
 }
 
-// SET RELAY
 async function setRelay(state) {
   await fetch("/api/set-relay", {
     method: "POST",
@@ -344,12 +343,12 @@ async function setRelay(state) {
   });
 }
 
-// HISTORY GRAPH (MODERN)
+// HISTORY
 async function loadHistory() {
   const res = await fetch("/api/get-history", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ device_id, password})
+    body: JSON.stringify({ device_id, password })
   });
 
   const data = await res.json();
@@ -361,7 +360,6 @@ async function loadHistory() {
 }
 
 function drawChart(labels, values) {
-
   if (chart) chart.destroy();
 
   const ctx = document.getElementById("chart").getContext("2d");
