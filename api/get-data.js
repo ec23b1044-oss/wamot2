@@ -1,27 +1,28 @@
+import axios from "axios";
+
 export default async function handler(req, res) {
   try {
-
-    // ✅ SAFE BODY HANDLING
-    let body = {};
-
-    if (req.body) {
-      body = typeof req.body === "string"
-        ? JSON.parse(req.body)
-        : req.body;
+    if (req.method !== "POST") {
+      return res.status(405).json({ error: "Method not allowed" });
     }
 
-    const device_id = body.device_id;
-    const password = body.password
+    // ✅ SAFE BODY PARSE
+    const body = typeof req.body === "string"
+      ? JSON.parse(req.body)
+      : req.body;
 
-    if (!device_id) {
-      return res.status(400).json({ error: "device_id missing" });
+    const { device_id, password } = body;
+
+    if (!device_id || !password) {
+      return res.status(400).json({ error: "Missing fields" });
     }
- const SUPABASE_URL = process.env.SUPABASE_URL;
-  const SERVICE_KEY = process.env.SERVICE_KEY;
 
-  try {
-    const device = await axios.get(
-      `${SUPABASE_URL}/rest/v1/devices?device_id=eq.${device_id}`,
+    const SUPABASE_URL = process.env.SUPABASE_URL;
+    const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    // 🔐 1. VERIFY DEVICE
+    const deviceRes = await axios.get(
+      `${SUPABASE_URL}/rest/v1/devices?device_id=eq.${device_id}&device_password=eq.${password}`,
       {
         headers: {
           apikey: SERVICE_KEY,
@@ -30,33 +31,25 @@ export default async function handler(req, res) {
       }
     );
 
-    if (!device.data.length)
-      return res.status(401).send("Invalid");
+    if (!deviceRes.data.length) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
 
-    if (device.data[0].device_password !== password)
-      return res.status(403).send("Unauthorized");
-
-  } catch (err) {
-    res.status(500).send("Error");
-  }
- 
-
-    const url = `${process.env.SUPABASE_URL}/rest/v1/device_data?device_id=eq.${device_id}&order=created_at.desc&limit=1`;
-
-    const response = await fetch(url, {
-      method: "GET",
-      headers: {
-        apikey: process.env.SUPABASE_SERVICE_ROLE_KEY,
-        Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`
+    // 📊 2. GET LATEST DATA
+    const dataRes = await axios.get(
+      `${SUPABASE_URL}/rest/v1/device_data?device_id=eq.${device_id}&order=created_at.desc&limit=1`,
+      {
+        headers: {
+          apikey: SERVICE_KEY,
+          Authorization: `Bearer ${SERVICE_KEY}`
+        }
       }
-    });
+    );
 
-    const data = await response.json();
-
-    return res.json(data[0] || {});
+    return res.json(dataRes.data[0] || {});
 
   } catch (err) {
-    console.error("ERROR:", err);
-    return res.status(500).json({ error: err.message });
+    console.error("get-data error:", err);
+    return res.status(500).json({ error: "Server error" });
   }
 }
