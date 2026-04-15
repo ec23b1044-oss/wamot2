@@ -17,20 +17,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "device_id missing" });
     }
 
-    
-    const device = await axios.get(
-  `${SUPABASE_URL}/rest/v1/devices?device_id=eq.${device_id}&device_password=eq.${password}`,
-  {
-    headers: {
-        apikey: process.env.SUPABASE_SERVICE_ROLE_KEY,
-        Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`
-    }
-  }
-);
-
-if (!device.data.length) {
-  return res.status(401).send("Unauthorized");
-}
+ 
 
     const url = `${process.env.SUPABASE_URL}/rest/v1/device_data?device_id=eq.${device_id}&order=created_at.desc&limit=1`;
 
