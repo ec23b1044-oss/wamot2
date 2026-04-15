@@ -1,5 +1,11 @@
 export default async function handler(req, res) {
+const { device_id, password } = req.body;
 
+// 🔐 VERIFY FIRST
+const device = await axios.get(...);
+
+if (!device.data.length || device.data[0].device_password !== password)
+  return res.status(401).send("Unauthorized");
   const { device_id } = req.body;
 
   const r = await fetch(
