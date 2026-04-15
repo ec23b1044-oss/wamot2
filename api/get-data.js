@@ -1,12 +1,6 @@
 export default async function handler(req, res) {
   try {
-const { device_id, password } = req.body;
 
-// 🔐 VERIFY FIRST
-const device = await axios.get(...);
-
-if (!device.data.length || device.data[0].device_password !== password)
-  return res.status(401).send("Unauthorized");
     // ✅ SAFE BODY HANDLING
     let body = {};
 
@@ -17,12 +11,13 @@ if (!device.data.length || device.data[0].device_password !== password)
     }
 
     const device_id = body.device_id;
+    const password = body.password
 
     if (!device_id) {
       return res.status(400).json({ error: "device_id missing" });
     }
 
-    const url = `${process.env.SUPABASE_URL}/rest/v1/device_data?device_id=eq.${device_id}&order=created_at.desc&limit=1`;
+    const url = `${process.env.SUPABASE_URL}/rest/v1/device_data?device_id=eq.${device_id}&device_password=eq.${password}&order=created_at.desc&limit=1`;
 
     const response = await fetch(url, {
       method: "GET",
