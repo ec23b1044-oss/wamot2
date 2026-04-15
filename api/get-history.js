@@ -1,16 +1,5 @@
 export default async function handler(req, res) {
-const { device_id, password } = req.body;
 
-// verify
-const { data: user } = await supabase
-  .from("devices")
-  .select("*")
-  .eq("device_id", device_id)
-  .eq("device_password", password);
-
-if (!user || user.length === 0)
-  return res.status(401).json({ error: "Unauthorized" });
-  
   const { device_id } = req.body;
 
   const r = await fetch(
