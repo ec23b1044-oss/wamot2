@@ -23,7 +23,7 @@ export default async function handler(req, res) {
     if (!device.data.length)
       return res.status(401).send("Invalid");
 
-    if (device.data[0].device_secret !== device_secret)
+    if (device.data[0].device_password !== device_secret)
       return res.status(403).send("Unauthorized");
 
     res.json({ relay: device.data[0].relay_state });
