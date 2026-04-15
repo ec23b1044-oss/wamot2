@@ -259,7 +259,7 @@ async function getData() {
   const res = await fetch("/api/get-data", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ device_id })
+    body: JSON.stringify({ device_id, password })
   });
 
   const data = await res.json();
@@ -291,7 +291,7 @@ async function getRelayState() {
   const res = await fetch("/api/get-relay", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ device_id })
+    body: JSON.stringify({ device_id, password })
   });
 
   const data = await res.json();
@@ -349,7 +349,7 @@ async function loadHistory() {
   const res = await fetch("/api/get-history", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ device_id })
+    body: JSON.stringify({ device_id, password})
   });
 
   const data = await res.json();
