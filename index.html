@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>WAMOT</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: radial-gradient(circle at top, #0f172a, #020617);
+      color: white;
+    }
+
+    /* LOGIN */
+    .login-container {
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .login-card {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(20px);
+      padding: 30px;
+      border-radius: 20px;
+      width: 300px;
+      text-align: center;
+      box-shadow: 0 0 30px rgba(0,0,0,0.5);
+    }
+
+    input {
+      width: 90%;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 10px;
+      border: none;
+      background: rgba(255,255,255,0.1);
+      color: white;
+    }
+
+    button {
+      width: 95%;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      background: linear-gradient(45deg, #2563eb, #06b6d4);
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    /* DASHBOARD */
+    .dashboard { display: none; padding: 20px; }
+
+    .layout {
+      display: flex;
+      gap: 20px;
+    }
+
+    .left, .right {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 0 30px rgba(0,0,0,0.5);
+    }
+
+    .left { flex: 1; }
+    .right { flex: 2; }
+
+    .card {
+      margin-bottom: 20px;
+      padding: 20px;
+      border-radius: 15px;
+      background: rgba(255,255,255,0.05);
+      text-align: center;
+    }
+
+    h2 { color: #38bdf8; }
+
+    /* SWITCH */
+    .switch-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .switch {
+      position: relative;
+      width: 70px;
+      height: 35px;
+    }
+
+    .switch input { opacity: 0; }
+
+    .slider {
+      position: absolute;
+      background-color: #374151;
+      border-radius: 30px;
+      top: 0; left: 0; right: 0; bottom: 0;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .slider:before {
+      content: "";
+      position: absolute;
+      height: 28px;
+      width: 28px;
+      left: 4px;
+      bottom: 3px;
+      background: white;
+      border-radius: 50%;
+      transition: 0.3s;
+    }
+
+    input:checked + .slider {
+      background: #22c55e;
+      box-shadow: 0 0 15px #22c55e;
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(34px);
+    }
+
+    .disabled {
+      opacity: 0.4;
+      pointer-events: none;
+    }
+
+    .mode-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .mode-buttons button {
+      flex: 1;
+      background: #1e293b;
+    }
+
+    /* STATUS BADGE */
+    .status {
+      margin-top: 10px;
+      padding: 8px 12px;
+      border-radius: 20px;
+      font-size: 14px;
+      display: inline-block;
+    }
+
+    .good { background: #22c55e; }
+    .bad { background: #ef4444; }
+    .warn { background: #f59e0b; }
+
+    canvas {
+      background: rgba(255,255,255,0.05);
+      border-radius: 15px;
+      padding: 10px;
+    }
+
+    @media (max-width: 768px) {
+      .layout { flex-direction: column; }
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- LOGIN -->
+<div class="login-container" id="loginScreen">
+  <div class="login-card">
+    <h2>💧 WAMOT</h2>
+    <input id="device_id" placeholder="Device ID">
+    <input id="password" type="password" placeholder="Password">
+    <button onclick="login()">Access Device</button>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div class="dashboard" id="dashboard">
+
+  <div class="layout">
+
+    <!-- LEFT -->
+    <div class="left">
+
+      <div class="card">
+        <h2>TDS</h2>
+        <p id="tds">--</p>
+        <div id="waterStatus" class="status">--</div>
+      </div>
+
+      <div class="card">
+        <h2>Water Level</h2>
+        <p id="level">--</p>
+      </div>
+
+      <div class="card">
+        <h2>Motor</h2>
+
+        <div id="switchContainer" class="switch-container">
+          <label class="switch">
+            <input type="checkbox" id="relaySwitch" onchange="toggleRelay()">
+            <span class="slider"></span>
+          </label>
+          <p id="switchLabel">OFF</p>
+        </div>
+
+        <div class="mode-buttons">
+          <button onclick="setMode('MANUAL')">Manual</button>
+          <button onclick="setMode('AUTO')">Auto</button>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- RIGHT -->
+    <div class="right">
+      <h2>📊 Water Level History</h2>
+      <canvas id="chart"></canvas>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+let device_id = "";
+let password = "";
+let chart;
+
+// LOGIN
+async function login() {
+  device_id = document.getElementById("device_id").value;
+  password = document.getElementById("password").value;
+
+  const res = await fetch("/api/login", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ device_id, password })
+  });
+
+  const data = await res.json();
+  if (!data.success) return alert("Invalid login");
+
+  document.getElementById("loginScreen").style.display = "none";
+  document.getElementById("dashboard").style.display = "block";
+
+  getData();
+  loadHistory();
+  getRelayState();
+}
+
+// LIVE DATA
+async function getData() {
+  const res = await fetch("/api/get-data", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ device_id })
+  });
+
+  const data = await res.json();
+
+  document.getElementById("tds").innerText = data.tds ?? "--";
+  document.getElementById("level").innerText = data.water_level ?? "--";
+
+  updateWaterStatus(data.tds);
+}
+
+// WATER QUALITY STATUS
+function updateWaterStatus(tds) {
+  const status = document.getElementById("waterStatus");
+
+  if (tds < 300) {
+    status.innerText = "💧 Excellent (Drinkable)";
+    status.className = "status good";
+  } else if (tds < 600) {
+    status.innerText = "⚠ Moderate";
+    status.className = "status warn";
+  } else {
+    status.innerText = "❌ Not Drinkable";
+    status.className = "status bad";
+  }
+}
+
+// RELAY STATE
+async function getRelayState() {
+  const res = await fetch("/api/get-relay", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ device_id })
+  });
+
+  const data = await res.json();
+  updateRelayUI(data.state);
+}
+
+// UPDATE RELAY UI
+function updateRelayUI(state) {
+  const box = document.getElementById("switchContainer");
+  const sw = document.getElementById("relaySwitch");
+  const label = document.getElementById("switchLabel");
+
+  if (state === "ON") {
+    sw.checked = true;
+    box.classList.remove("disabled");
+    label.innerText = "ON";
+  } else if (state === "OFF") {
+    sw.checked = false;
+    box.classList.remove("disabled");
+    label.innerText = "OFF";
+  } else {
+    box.classList.add("disabled");
+    label.innerText = "AUTO";
+  }
+}
+
+// TOGGLE
+function toggleRelay() {
+  const state = document.getElementById("relaySwitch").checked ? "ON" : "OFF";
+  setRelay(state);
+}
+
+// MODE
+function setMode(mode) {
+  if (mode === "AUTO") {
+    document.getElementById("switchContainer").classList.add("disabled");
+    document.getElementById("switchLabel").innerText = "AUTO";
+    setRelay("AUTO");
+  } else {
+    document.getElementById("switchContainer").classList.remove("disabled");
+  }
+}
+
+// SET RELAY
+async function setRelay(state) {
+  await fetch("/api/set-relay", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ device_id, password, state })
+  });
+}
+
+// HISTORY GRAPH (MODERN)
+async function loadHistory() {
+  const res = await fetch("/api/get-history", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ device_id })
+  });
+
+  const data = await res.json();
+
+  const labels = data.map(d => new Date(d.created_at).toLocaleTimeString());
+  const values = data.map(d => d.water_level);
+
+  drawChart(labels, values);
+}
+
+function drawChart(labels, values) {
+
+  if (chart) chart.destroy();
+
+  const ctx = document.getElementById("chart").getContext("2d");
+
+  const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+  gradient.addColorStop(0, "rgba(56,189,248,0.8)");
+  gradient.addColorStop(1, "rgba(56,189,248,0.05)");
+
+  chart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels,
+      datasets: [{
+        label: "Water Level",
+        data: values,
+        borderColor: "#38bdf8",
+        backgroundColor: gradient,
+        fill: true,
+        tension: 0.4,
+        pointRadius: 0
+      }]
+    },
+    options: {
+      plugins: {
+        legend: { labels: { color: "white" } }
+      },
+      scales: {
+        x: { ticks: { color: "#94a3b8" } },
+        y: { ticks: { color: "#94a3b8" } }
+      }
+    }
+  });
+}
+
+// AUTO REFRESH
+setInterval(() => {
+  if (device_id) {
+    getData();
+    getRelayState();
+  }
+}, 5000);
+</script>
+
+</body>
+</html>
