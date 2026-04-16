@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>WAMOT 2.0</title>
 
-  <!-- ✅ FIX: prevents zoomed-out mobile scaling -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0f172a">
 
+
+  <title>WAMOT</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
@@ -14,31 +15,21 @@
       font-family: 'Segoe UI', sans-serif;
       background: radial-gradient(circle at top, #0f172a, #020617);
       color: white;
-
-      /* ✅ FIX: prevents iOS text auto zoom weirdness */
-      -webkit-text-size-adjust: 100%;
-      font-size: 16px;
     }
 
-    /* LOGIN */
     .login-container {
       height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
-      padding: 12px;
     }
 
     .login-card {
       background: rgba(255,255,255,0.05);
       backdrop-filter: blur(20px);
-      padding: 28px;
+      padding: 30px;
       border-radius: 20px;
-
-      /* ✅ FIX: responsive instead of fixed feel */
-      width: 100%;
-      max-width: 320px;
-
+      width: 300px;
       text-align: center;
       box-shadow: 0 0 30px rgba(0,0,0,0.5);
     }
@@ -51,26 +42,20 @@
       border: none;
       background: rgba(255,255,255,0.1);
       color: white;
-      font-size: 16px;
     }
 
     button {
       width: 95%;
-      padding: 14px;
+      padding: 12px;
       border-radius: 10px;
       border: none;
       background: linear-gradient(45deg, #2563eb, #06b6d4);
       color: white;
       cursor: pointer;
       font-weight: bold;
-      font-size: 16px;
     }
 
-    /* DASHBOARD */
-    .dashboard {
-      display: none;
-      padding: 12px;
-    }
+    .dashboard { display: none; padding: 20px; }
 
     .layout {
       display: flex;
@@ -98,7 +83,6 @@
 
     h2 { color: #38bdf8; }
 
-    /* SWITCH */
     .switch-container {
       display: flex;
       flex-direction: column;
@@ -159,7 +143,6 @@
       background: #1e293b;
     }
 
-    /* STATUS */
     .status {
       margin-top: 10px;
       padding: 8px 12px;
@@ -176,43 +159,16 @@
       background: rgba(255,255,255,0.05);
       border-radius: 15px;
       padding: 10px;
-      width: 100% !important;
-      height: 300px !important;
     }
 
-    /* 📱 MOBILE FIX */
     @media (max-width: 768px) {
-
-      .layout {
-        flex-direction: column;
-      }
-
-      .card {
-        padding: 14px;
-      }
-
-      h2 {
-        font-size: 18px;
-      }
-
-      button {
-        font-size: 15px;
-      }
-
-      input {
-        font-size: 15px;
-      }
-
-      canvas {
-        height: 220px !important;
-      }
+      .layout { flex-direction: column; }
     }
   </style>
 </head>
 
 <body>
 
-<!-- LOGIN -->
 <div class="login-container" id="loginScreen">
   <div class="login-card">
     <h2>💧 WAMOT</h2>
@@ -222,9 +178,7 @@
   </div>
 </div>
 
-<!-- DASHBOARD -->
 <div class="dashboard" id="dashboard">
-
   <div class="layout">
 
     <div class="left">
@@ -266,13 +220,13 @@
     </div>
 
   </div>
-
 </div>
 
 <script>
 let device_id = "";
 let password = "";
 let chart;
+let manualOverride = false;
 
 // LOGIN
 async function login() {
@@ -296,12 +250,12 @@ async function login() {
   getRelayState();
 }
 
-// DATA
+// LIVE DATA
 async function getData() {
   const res = await fetch("/api/get-data", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ device_id })
+    body: JSON.stringify({ device_id, password })
   });
 
   const data = await res.json();
@@ -312,6 +266,7 @@ async function getData() {
   updateWaterStatus(data.tds);
 }
 
+// WATER QUALITY
 function updateWaterStatus(tds) {
   const status = document.getElementById("waterStatus");
 
@@ -329,14 +284,17 @@ function updateWaterStatus(tds) {
 
 // RELAY
 async function getRelayState() {
+
+  if (manualOverride) return;
+
   const res = await fetch("/api/get-relay", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ device_id })
+    body: JSON.stringify({ device_id, password })
   });
 
   const data = await res.json();
-  updateRelayUI(data.state);
+  updateRelayUI(data.relay || data.state);
 }
 
 function updateRelayUI(state) {
@@ -358,12 +316,19 @@ function updateRelayUI(state) {
   }
 }
 
+// USER CONTROL FIX
 function toggleRelay() {
+  manualOverride = true;
+
   const state = document.getElementById("relaySwitch").checked ? "ON" : "OFF";
   setRelay(state);
+
+  setTimeout(() => manualOverride = false, 3000);
 }
 
 function setMode(mode) {
+  manualOverride = true;
+
   if (mode === "AUTO") {
     document.getElementById("switchContainer").classList.add("disabled");
     document.getElementById("switchLabel").innerText = "AUTO";
@@ -371,6 +336,8 @@ function setMode(mode) {
   } else {
     document.getElementById("switchContainer").classList.remove("disabled");
   }
+
+  setTimeout(() => manualOverride = false, 3000);
 }
 
 async function setRelay(state) {
@@ -386,7 +353,7 @@ async function loadHistory() {
   const res = await fetch("/api/get-history", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ device_id })
+    body: JSON.stringify({ device_id, password })
   });
 
   const data = await res.json();
@@ -398,7 +365,6 @@ async function loadHistory() {
 }
 
 function drawChart(labels, values) {
-
   if (chart) chart.destroy();
 
   const ctx = document.getElementById("chart").getContext("2d");
@@ -422,8 +388,6 @@ function drawChart(labels, values) {
       }]
     },
     options: {
-      responsive: true,
-      maintainAspectRatio: false,
       plugins: {
         legend: { labels: { color: "white" } }
       },
@@ -446,3 +410,11 @@ setInterval(() => {
 
 </body>
 </html>
+
+
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("/service-worker.js")
+    .then(() => console.log("Service Worker Registered"));
+}
+</script>
