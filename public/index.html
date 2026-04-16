@@ -5,166 +5,207 @@
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#0f172a">
 
+<!-- 🔥 CRITICAL FIX (THIS WAS MISSING) -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-  <title>WAMOT</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<title>WAMOT</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: radial-gradient(circle at top, #0f172a, #020617);
-      color: white;
-    }
+<style>
 
-    .login-container {
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background: radial-gradient(circle at top, #0f172a, #020617);
+  color: white;
 
-    .login-card {
-      background: rgba(255,255,255,0.05);
-      backdrop-filter: blur(20px);
-      padding: 30px;
-      border-radius: 20px;
-      width: 300px;
-      text-align: center;
-      box-shadow: 0 0 30px rgba(0,0,0,0.5);
-    }
+  /* prevents iOS zoom weirdness */
+  -webkit-text-size-adjust: 100%;
+}
 
-    input {
-      width: 90%;
-      padding: 12px;
-      margin: 10px 0;
-      border-radius: 10px;
-      border: none;
-      background: rgba(255,255,255,0.1);
-      color: white;
-    }
+/* LOGIN */
+.login-container {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+}
 
-    button {
-      width: 95%;
-      padding: 12px;
-      border-radius: 10px;
-      border: none;
-      background: linear-gradient(45deg, #2563eb, #06b6d4);
-      color: white;
-      cursor: pointer;
-      font-weight: bold;
-    }
+.login-card {
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(20px);
+  padding: 25px;
+  border-radius: 20px;
 
-    .dashboard { display: none; padding: 20px; }
+  width: 100%;
+  max-width: 320px;
 
-    .layout {
-      display: flex;
-      gap: 20px;
-    }
+  text-align: center;
+  box-shadow: 0 0 30px rgba(0,0,0,0.5);
+}
 
-    .left, .right {
-      background: rgba(255,255,255,0.05);
-      backdrop-filter: blur(20px);
-      border-radius: 20px;
-      padding: 20px;
-      box-shadow: 0 0 30px rgba(0,0,0,0.5);
-    }
+input {
+  width: 90%;
+  padding: 12px;
+  margin: 10px 0;
+  border-radius: 10px;
+  border: none;
+  background: rgba(255,255,255,0.1);
+  color: white;
+  font-size: 16px;
+}
 
-    .left { flex: 1; }
-    .right { flex: 2; }
+button {
+  width: 95%;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(45deg, #2563eb, #06b6d4);
+  color: white;
+  cursor: pointer;
+  font-weight: bold;
+}
 
-    .card {
-      margin-bottom: 20px;
-      padding: 20px;
-      border-radius: 15px;
-      background: rgba(255,255,255,0.05);
-      text-align: center;
-    }
+/* DASHBOARD */
+.dashboard {
+  display: none;
+  padding: 12px;
+}
 
-    h2 { color: #38bdf8; }
+.layout {
+  display: flex;
+  gap: 20px;
+}
 
-    .switch-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
+.left, .right {
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 0 30px rgba(0,0,0,0.5);
+}
 
-    .switch {
-      position: relative;
-      width: 70px;
-      height: 35px;
-    }
+.left { flex: 1; }
+.right { flex: 2; }
 
-    .switch input { opacity: 0; }
+.card {
+  margin-bottom: 20px;
+  padding: 20px;
+  border-radius: 15px;
+  background: rgba(255,255,255,0.05);
+  text-align: center;
+}
 
-    .slider {
-      position: absolute;
-      background-color: #374151;
-      border-radius: 30px;
-      top: 0; left: 0; right: 0; bottom: 0;
-      cursor: pointer;
-      transition: 0.3s;
-    }
+h2 { color: #38bdf8; }
 
-    .slider:before {
-      content: "";
-      position: absolute;
-      height: 28px;
-      width: 28px;
-      left: 4px;
-      bottom: 3px;
-      background: white;
-      border-radius: 50%;
-      transition: 0.3s;
-    }
+/* SWITCH */
+.switch-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 
-    input:checked + .slider {
-      background: #22c55e;
-      box-shadow: 0 0 15px #22c55e;
-    }
+.switch {
+  position: relative;
+  width: 70px;
+  height: 35px;
+}
 
-    input:checked + .slider:before {
-      transform: translateX(34px);
-    }
+.switch input { opacity: 0; }
 
-    .disabled {
-      opacity: 0.4;
-      pointer-events: none;
-    }
+.slider {
+  position: absolute;
+  background-color: #374151;
+  border-radius: 30px;
+  top: 0; left: 0; right: 0; bottom: 0;
+  cursor: pointer;
+  transition: 0.3s;
+}
 
-    .mode-buttons {
-      display: flex;
-      gap: 10px;
-      margin-top: 15px;
-    }
+.slider:before {
+  content: "";
+  position: absolute;
+  height: 28px;
+  width: 28px;
+  left: 4px;
+  bottom: 3px;
+  background: white;
+  border-radius: 50%;
+  transition: 0.3s;
+}
 
-    .mode-buttons button {
-      flex: 1;
-      background: #1e293b;
-    }
+input:checked + .slider {
+  background: #22c55e;
+  box-shadow: 0 0 15px #22c55e;
+}
 
-    .status {
-      margin-top: 10px;
-      padding: 8px 12px;
-      border-radius: 20px;
-      font-size: 14px;
-      display: inline-block;
-    }
+input:checked + .slider:before {
+  transform: translateX(34px);
+}
 
-    .good { background: #22c55e; }
-    .bad { background: #ef4444; }
-    .warn { background: #f59e0b; }
+.disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
 
-    canvas {
-      background: rgba(255,255,255,0.05);
-      border-radius: 15px;
-      padding: 10px;
-    }
+.mode-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
 
-    @media (max-width: 768px) {
-      .layout { flex-direction: column; }
-    }
-  </style>
+.mode-buttons button {
+  flex: 1;
+  background: #1e293b;
+}
+
+.status {
+  margin-top: 10px;
+  padding: 8px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  display: inline-block;
+}
+
+.good { background: #22c55e; }
+.bad { background: #ef4444; }
+.warn { background: #f59e0b; }
+
+canvas {
+  background: rgba(255,255,255,0.05);
+  border-radius: 15px;
+  padding: 10px;
+  width: 100% !important;
+  height: 300px !important;
+}
+
+/* 📱 MOBILE FIX */
+@media (max-width: 768px) {
+
+  .layout {
+    flex-direction: column;
+  }
+
+  .login-card {
+    max-width: none;
+    width: 92%;
+  }
+
+  .card {
+    padding: 14px;
+  }
+
+  button, input {
+    font-size: 15px;
+  }
+
+  canvas {
+    height: 220px !important;
+  }
+}
+
+</style>
 </head>
 
 <body>
@@ -228,7 +269,6 @@ let password = "";
 let chart;
 let manualOverride = false;
 
-// LOGIN
 async function login() {
   device_id = document.getElementById("device_id").value;
   password = document.getElementById("password").value;
@@ -250,7 +290,6 @@ async function login() {
   getRelayState();
 }
 
-// LIVE DATA
 async function getData() {
   const res = await fetch("/api/get-data", {
     method: "POST",
@@ -266,7 +305,6 @@ async function getData() {
   updateWaterStatus(data.tds);
 }
 
-// WATER QUALITY
 function updateWaterStatus(tds) {
   const status = document.getElementById("waterStatus");
 
@@ -282,9 +320,7 @@ function updateWaterStatus(tds) {
   }
 }
 
-// RELAY
 async function getRelayState() {
-
   if (manualOverride) return;
 
   const res = await fetch("/api/get-relay", {
@@ -316,13 +352,10 @@ function updateRelayUI(state) {
   }
 }
 
-// USER CONTROL FIX
 function toggleRelay() {
   manualOverride = true;
-
   const state = document.getElementById("relaySwitch").checked ? "ON" : "OFF";
   setRelay(state);
-
   setTimeout(() => manualOverride = false, 3000);
 }
 
@@ -348,7 +381,6 @@ async function setRelay(state) {
   });
 }
 
-// HISTORY
 async function loadHistory() {
   const res = await fetch("/api/get-history", {
     method: "POST",
@@ -369,10 +401,6 @@ function drawChart(labels, values) {
 
   const ctx = document.getElementById("chart").getContext("2d");
 
-  const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-  gradient.addColorStop(0, "rgba(56,189,248,0.8)");
-  gradient.addColorStop(1, "rgba(56,189,248,0.05)");
-
   chart = new Chart(ctx, {
     type: "line",
     data: {
@@ -381,25 +409,19 @@ function drawChart(labels, values) {
         label: "Water Level",
         data: values,
         borderColor: "#38bdf8",
-        backgroundColor: gradient,
+        backgroundColor: "rgba(56,189,248,0.2)",
         fill: true,
         tension: 0.4,
         pointRadius: 0
       }]
     },
     options: {
-      plugins: {
-        legend: { labels: { color: "white" } }
-      },
-      scales: {
-        x: { ticks: { color: "#94a3b8" } },
-        y: { ticks: { color: "#94a3b8" } }
-      }
+      responsive: true,
+      maintainAspectRatio: false
     }
   });
 }
 
-// AUTO REFRESH
 setInterval(() => {
   if (device_id) {
     getData();
@@ -408,13 +430,12 @@ setInterval(() => {
 }, 5000);
 </script>
 
-</body>
-</html>
-
-
 <script>
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("/service-worker.js")
     .then(() => console.log("Service Worker Registered"));
 }
 </script>
+
+</body>
+</html>
