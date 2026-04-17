@@ -458,8 +458,26 @@ async function loadHistory() {
   const data = await res.json();
 
   const labels = data.map(d => new Date(d.created_at).toLocaleTimeString());
-  const values = data.map(d => d.water_level);
+// fetch tank height once
+const res2 = await fetch("/api/get-height", {
+  method: "POST",
+  headers: {"Content-Type": "application/json"},
+  body: JSON.stringify({ device_id, password })
+});
 
+const config = await res2.json();
+let tankHeight = config.tank_height;
+
+// convert each data point
+const values = data.map(d => {
+  let distance = d.water_level;
+
+  let waterHeight = tankHeight - distance;
+  if (waterHeight < 0) waterHeight = 0;
+
+  let percent = (waterHeight / tankHeight) * 100;
+  return percent.toFixed(1);
+});
   drawChart(labels, values);
 }
 
