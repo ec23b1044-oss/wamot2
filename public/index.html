@@ -341,13 +341,13 @@ async function getData() {
 let distance = data.water_level;
 
 // get tank height
-const res = await fetch("/api/get-height", {
+const res2 = await fetch("/api/get-height", {
   method: "POST",
   headers: {"Content-Type": "application/json"},
   body: JSON.stringify({ device_id, password })
 });
 
-const config = await res.json();
+const config = await res2.json();
 let tankHeight = config.tank_height;
 
 // calculate actual water height
