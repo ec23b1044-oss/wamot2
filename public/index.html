@@ -214,7 +214,21 @@ canvas {
   <div class="login-card">
     <h2>💧 WAMOT</h2>
     <input id="device_id" placeholder="Device ID">
-    <input id="password" type="password" placeholder="Password">
+<div style="position: relative; width: 100%;">
+  <input id="password" type="password" placeholder="Password" style="width: 90%;">
+
+  <span onclick="togglePassword()" style="
+    position:absolute;
+    right:20px;
+    top:50%;
+    transform:translateY(-50%);
+    cursor:pointer;
+    font-size:14px;
+    opacity:0.7;
+  ">
+    👁
+  </span>
+</div>
     <button onclick="login()">Access Device</button>
   </div>
 </div>
@@ -270,6 +284,15 @@ let device_id = "";
 let password = "";
 let chart;
 let manualOverride = false;
+  function togglePassword() {
+  const input = document.getElementById("password");
+
+  if (input.type === "password") {
+    input.type = "text";
+  } else {
+    input.type = "password";
+  }
+}
 function openSettings() {
   document.getElementById("settingsPanel").style.display = "flex";
   loadHeight();
