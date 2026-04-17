@@ -338,34 +338,37 @@ async function getData() {
   const data = await res.json();
 
   document.getElementById("tds").innerText = data.tds ?? "--";
-let distance = data.water_level;
 
-// get tank height
-const res2 = await fetch("/api/get-height", {
-  method: "POST",
-  headers: {"Content-Type": "application/json"},
-  body: JSON.stringify({ device_id, password })
-});
+  // distance (your backend calls it water_level)
+  let distance = data.water_level;
 
-const config = await res2.json();
-let tankHeight = config.tank_height;
+  // get tank height
+  const res2 = await fetch("/api/get-height", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ device_id, password })
+  });
 
-// calculate actual water height
-let waterHeight = tankHeight - distance;
-if (waterHeight < 0) waterHeight = 0;
+  const config = await res2.json();
+  let tankHeight = config.tank_height;
 
-// calculate percentage
-let percent = (waterHeight / tankHeight) * 100;
-percent = percent.toFixed(1);
+  if (distance !== undefined && tankHeight) {
 
-// display
-document.getElementById("level").innerText = percent + " %";
-document.getElementById("level_cm").innerText =
-  waterHeight.toFixed(1) + " cm / " + tankHeight + " cm";
+    let waterHeight = tankHeight - distance;
+    if (waterHeight < 0) waterHeight = 0;
 
-} else {
-  document.getElementById("level_cm").innerText = "--";
-}
+    let percent = (waterHeight / tankHeight) * 100;
+    percent = percent.toFixed(1);
+
+    document.getElementById("level").innerText = percent + " %";
+    document.getElementById("level_cm").innerText =
+      waterHeight.toFixed(1) + " cm / " + tankHeight + " cm";
+
+  } else {
+    document.getElementById("level").innerText = "--";
+    document.getElementById("level_cm").innerText = "--";
+  }
+
   updateWaterStatus(data.tds);
 }
 
